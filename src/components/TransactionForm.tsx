@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "@/hooks/use-toast";
 
 interface TransactionFormProps {
   person?: Person;
@@ -45,6 +46,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const [isCredit, setIsCredit] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   const currentPerson = selectedPerson 
     ? state.people.find(p => p.id === selectedPerson) 
@@ -67,44 +69,78 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedPerson || !selectedLocation || !amount) return;
-
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) return;
-
-    const newTransaction: Transaction = {
-      id: isEditing ? editTransaction!.id : crypto.randomUUID(),
-      personId: selectedPerson,
-      locationId: selectedLocation,
-      type: transactionType,
-      amount: parsedAmount,
-      itemName: transactionType === 'item' ? itemName : undefined,
-      date: isEditing ? editTransaction!.date : new Date().toISOString(),
-      isCredit,
-      notes: notes.trim() ? notes : undefined,
-      imageUrl: imageUrl.trim() ? imageUrl : undefined
-    };
-
-    if (isEditing) {
-      dispatch({ type: 'UPDATE_TRANSACTION', payload: newTransaction });
-    } else {
-      dispatch({ type: 'ADD_TRANSACTION', payload: newTransaction });
+    if (!selectedPerson || !selectedLocation || !amount) {
+      toast({
+        title: "Missing information",
+        description: "Please fill all required fields",
+        variant: "destructive"
+      });
+      return;
     }
 
-    // Reset form
-    if (!person) {
-      setSelectedPerson('');
+    try {
+      setSubmitting(true);
+      const parsedAmount = parseFloat(amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        toast({
+          title: "Invalid amount",
+          description: "Please enter a valid positive number",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      const newTransaction: Transaction = {
+        id: isEditing ? editTransaction!.id : crypto.randomUUID(),
+        personId: selectedPerson,
+        locationId: selectedLocation,
+        type: transactionType,
+        amount: parsedAmount,
+        itemName: transactionType === 'item' ? itemName : undefined,
+        date: isEditing ? editTransaction!.date : new Date().toISOString(),
+        isCredit,
+        notes: notes.trim() ? notes : undefined,
+        imageUrl: imageUrl.trim() ? imageUrl : undefined
+      };
+
+      if (isEditing) {
+        dispatch({ type: 'UPDATE_TRANSACTION', payload: newTransaction });
+        toast({
+          title: "Transaction updated",
+          description: `Transaction has been updated successfully`
+        });
+      } else {
+        dispatch({ type: 'ADD_TRANSACTION', payload: newTransaction });
+        toast({
+          title: "Transaction added",
+          description: `New transaction has been added successfully`
+        });
+      }
+
+      // Reset form
+      if (!person) {
+        setSelectedPerson('');
+      }
+      setSelectedLocation('');
+      setTransactionType('money');
+      setAmount('');
+      setItemName('');
+      setNotes('');
+      setImageUrl('');
+      setIsCredit(true);
+      setIsEditing(false);
+      
+      if (onComplete) onComplete();
+    } catch (error) {
+      console.error("Error saving transaction:", error);
+      toast({
+        title: "Error",
+        description: "There was an error saving the transaction. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSelectedLocation('');
-    setTransactionType('money');
-    setAmount('');
-    setItemName('');
-    setNotes('');
-    setImageUrl('');
-    setIsCredit(true);
-    setIsEditing(false);
-    
-    if (onComplete) onComplete();
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,13 +156,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     }
   };
 
+  const validateForm = () => {
+    return selectedPerson && selectedLocation && amount && 
+           (!isNaN(parseFloat(amount)) && parseFloat(amount) > 0) && 
+           (transactionType !== 'item' || (transactionType === 'item' && itemName.trim() !== ''));
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>{isEditing ? 'Edit Transaction' : 'Add New Transaction'}</CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form id="transaction-form" onSubmit={handleSubmit} className="space-y-4">
           {!person && (
             <div className="space-y-2">
               <Label htmlFor="person">Person</Label>
@@ -235,7 +277,6 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </Label>
           </div>
 
-          {/* New Image Upload Field */}
           <div className="space-y-2">
             <Label htmlFor="transaction-image">Add Image (Optional)</Label>
             <div className="flex items-center gap-3">
@@ -279,9 +320,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               rows={3}
             />
           </div>
-
+          
           <CardFooter className="flex justify-end px-0">
-            <Button type="submit">
+            <Button 
+              type="submit" 
+              disabled={submitting || !validateForm()}
+            >
               {isEditing ? (
                 <>
                   <Check className="mr-2 h-4 w-4" />

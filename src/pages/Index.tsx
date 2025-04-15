@@ -9,7 +9,8 @@ import {
   FolderClock, 
   MapPin,
   PlusCircle,
-  Save
+  Save,
+  Map
 } from 'lucide-react';
 import PeopleList from '@/components/PeopleList';
 import TransactionsList from '@/components/TransactionsList';
@@ -27,6 +28,7 @@ import TransactionForm from '@/components/TransactionForm';
 import LocationForm from '@/components/LocationForm';
 import LocationsList from '@/components/LocationsList';
 import DataBackupControl from '@/components/DataBackupControl';
+import PeopleByLocation from '@/components/PeopleByLocation';
 
 const Index = () => {
   const [selectedTab, setSelectedTab] = useState('dashboard');
@@ -59,7 +61,7 @@ const Index = () => {
               orientation="vertical"
               className="w-full"
             >
-              <TabsList className="grid grid-cols-4 lg:grid-cols-1 h-auto lg:h-auto">
+              <TabsList className="grid grid-cols-5 lg:grid-cols-1 h-auto lg:h-auto">
                 <TabsTrigger value="dashboard" className="flex justify-start">
                   <LayoutDashboard className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Dashboard</span>
@@ -71,6 +73,10 @@ const Index = () => {
                 <TabsTrigger value="locations" className="flex justify-start">
                   <MapPin className="h-4 w-4 mr-2" />
                   <span className="hidden sm:inline">Locations</span>
+                </TabsTrigger>
+                <TabsTrigger value="people-by-location" className="flex justify-start">
+                  <Map className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">By Location</span>
                 </TabsTrigger>
                 <TabsTrigger value="transactions" className="flex justify-start">
                   <FolderClock className="h-4 w-4 mr-2" />
@@ -164,6 +170,9 @@ const Index = () => {
                   <PeopleList onViewPerson={(person) => setSelectedPerson(person)} />
                 )}
                 {selectedTab === 'locations' && <LocationsList />}
+                {selectedTab === 'people-by-location' && (
+                  <PeopleByLocation onViewPerson={(person) => setSelectedPerson(person)} />
+                )}
                 {selectedTab === 'transactions' && <TransactionsList />}
               </div>
             )}

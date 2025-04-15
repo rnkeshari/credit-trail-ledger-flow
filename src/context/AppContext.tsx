@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { Person, Location, Transaction, Dashboard } from '@/types';
 

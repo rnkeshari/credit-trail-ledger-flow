@@ -11,7 +11,8 @@ import {
   DollarSign, 
   Package, 
   ArrowDownCircle, 
-  ArrowUpCircle 
+  ArrowUpCircle,
+  ImageIcon 
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
@@ -30,6 +31,11 @@ import {
 } from "@/components/ui/dialog";
 import TransactionForm from './TransactionForm';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface TransactionsListProps {
   person?: Person;
@@ -42,6 +48,7 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ person }) => {
   const [typeFilter, setTypeFilter] = useState<'all' | 'money' | 'item'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'credit' | 'repayment'>('all');
   const [editTransaction, setEditTransaction] = useState<Transaction | undefined>(undefined);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   // Get transactions for the selected person or all transactions
   const personTransactions = person 
@@ -242,6 +249,18 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ person }) => {
                     <div className="text-xs text-muted-foreground mt-2">
                       {format(new Date(transaction.date), 'PPP')}
                     </div>
+
+                    {/* Image Preview Button */}
+                    {transaction.imageUrl && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 text-xs flex items-center"
+                        onClick={() => setImagePreview(transaction.imageUrl || null)}
+                      >
+                        <ImageIcon className="h-3 w-3 mr-1" /> View Image
+                      </Button>
+                    )}
                   </div>
                   
                   <div className="flex space-x-1">
@@ -288,6 +307,29 @@ const TransactionsList: React.FC<TransactionsListProps> = ({ person }) => {
                 editTransaction={editTransaction} 
                 onComplete={() => setEditTransaction(undefined)}
               />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Image Preview Dialog */}
+        <Dialog
+          open={!!imagePreview}
+          onOpenChange={(open) => {
+            if (!open) setImagePreview(null);
+          }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Transaction Image</DialogTitle>
+            </DialogHeader>
+            {imagePreview && (
+              <div className="flex justify-center">
+                <img 
+                  src={imagePreview} 
+                  alt="Transaction" 
+                  className="max-h-[70vh] max-w-full rounded-md object-contain" 
+                />
+              </div>
             )}
           </DialogContent>
         </Dialog>

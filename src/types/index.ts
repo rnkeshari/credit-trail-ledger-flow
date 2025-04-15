@@ -21,6 +21,7 @@ export interface Transaction {
   date: string;
   isCredit: boolean; // true for lending/credit, false for repayment
   notes?: string;
+  imageUrl?: string; // Optional field for transaction image
 }
 
 export interface Dashboard {

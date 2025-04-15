@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Transaction, Person } from '@/types';
-import { Check, Plus } from 'lucide-react';
+import { Check, Plus, Image, X } from 'lucide-react';
 import { 
   Card, 
   CardContent,
@@ -44,6 +44,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const [notes, setNotes] = useState<string>('');
   const [isCredit, setIsCredit] = useState<boolean>(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string>('');
 
   const currentPerson = selectedPerson 
     ? state.people.find(p => p.id === selectedPerson) 
@@ -58,6 +59,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       setItemName(editTransaction.itemName || '');
       setNotes(editTransaction.notes || '');
       setIsCredit(editTransaction.isCredit);
+      setImageUrl(editTransaction.imageUrl || '');
       setIsEditing(true);
     }
   }, [editTransaction]);
@@ -79,7 +81,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       itemName: transactionType === 'item' ? itemName : undefined,
       date: isEditing ? editTransaction!.date : new Date().toISOString(),
       isCredit,
-      notes: notes.trim() ? notes : undefined
+      notes: notes.trim() ? notes : undefined,
+      imageUrl: imageUrl.trim() ? imageUrl : undefined
     };
 
     if (isEditing) {
@@ -97,10 +100,24 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
     setAmount('');
     setItemName('');
     setNotes('');
+    setImageUrl('');
     setIsCredit(true);
     setIsEditing(false);
     
     if (onComplete) onComplete();
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setImageUrl(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -216,6 +233,40 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             <Label htmlFor="transaction-type">
               {isCredit ? 'Credit (lent to person)' : 'Repayment (received from person)'}
             </Label>
+          </div>
+
+          {/* New Image Upload Field */}
+          <div className="space-y-2">
+            <Label htmlFor="transaction-image">Add Image (Optional)</Label>
+            <div className="flex items-center gap-3">
+              <Input
+                id="transaction-image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="flex-1"
+              />
+            </div>
+            
+            {/* Image Preview */}
+            {imageUrl && (
+              <div className="relative mt-2 border rounded-md p-1">
+                <Button 
+                  type="button"
+                  variant="ghost" 
+                  size="sm"
+                  className="absolute top-1 right-1 h-6 w-6 p-0 rounded-full"
+                  onClick={() => setImageUrl('')}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <img 
+                  src={imageUrl} 
+                  alt="Transaction" 
+                  className="max-h-40 rounded object-cover mx-auto"
+                />
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">

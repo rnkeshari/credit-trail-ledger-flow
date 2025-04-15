@@ -29,3 +29,9 @@ export interface Dashboard {
   outstandingAmount: number;
   totalPeople: number;
 }
+
+export interface DataBackupOptions {
+  includeTransactions: boolean;
+  includePeople: boolean;
+  includeLocations: boolean;
+}

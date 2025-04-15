@@ -8,7 +8,8 @@ import {
   Users, 
   FolderClock, 
   MapPin,
-  PlusCircle
+  PlusCircle,
+  Save
 } from 'lucide-react';
 import PeopleList from '@/components/PeopleList';
 import TransactionsList from '@/components/TransactionsList';
@@ -25,6 +26,7 @@ import PersonForm from '@/components/PersonForm';
 import TransactionForm from '@/components/TransactionForm';
 import LocationForm from '@/components/LocationForm';
 import LocationsList from '@/components/LocationsList';
+import DataBackupControl from '@/components/DataBackupControl';
 
 const Index = () => {
   const [selectedTab, setSelectedTab] = useState('dashboard');
@@ -32,6 +34,7 @@ const Index = () => {
   const [personFormOpen, setPersonFormOpen] = useState(false);
   const [locationFormOpen, setLocationFormOpen] = useState(false);
   const [transactionFormOpen, setTransactionFormOpen] = useState(false);
+  const [dataBackupOpen, setDataBackupOpen] = useState(false);
 
   return (
     <AppProvider>
@@ -122,6 +125,21 @@ const Index = () => {
                     person={selectedPerson || undefined} 
                     onComplete={() => setTransactionFormOpen(false)} 
                   />
+                </DialogContent>
+              </Dialog>
+              
+              <Dialog open={dataBackupOpen} onOpenChange={setDataBackupOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start">
+                    <Save className="h-4 w-4 mr-2" />
+                    Backup & Restore
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Data Backup & Restore</DialogTitle>
+                  </DialogHeader>
+                  <DataBackupControl />
                 </DialogContent>
               </Dialog>
             </div>
